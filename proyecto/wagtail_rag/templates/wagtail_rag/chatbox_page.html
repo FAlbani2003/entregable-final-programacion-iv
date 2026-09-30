@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Asistente del sitio — Portal RAG Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: #0f1419;
+      color: #e8eef4;
+    }
+    .chat-page {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 8rem;
+    }
+    .chat-page h1 {
+      margin: 0 0 0.5rem;
+      font-size: 1.8rem;
+    }
+    .chat-page p {
+      margin: 0;
+      color: #8a9aab;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <main class="chat-page">
+    <h1>Asistente del sitio</h1>
+    <p>Pregunta sobre el inventario de AutoRepuestos. El chat está abierto a la derecha.</p>
+  </main>
+  {% include "wagtail_rag/chatbox.html" %}
+  <script>
+    document.getElementById("cb-panel").classList.add("open");
+    document.getElementById("cb-fab").setAttribute("aria-expanded", "true");
+  </script>
+</body>
+</html>

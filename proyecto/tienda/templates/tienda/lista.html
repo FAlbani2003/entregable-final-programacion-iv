@@ -1,0 +1,66 @@
+{% extends "tienda/base_tienda.html" %}
+
+{% block tienda_content %}
+<header class="tienda-head">
+  <div>
+    <p class="tienda-eyebrow">Inventario</p>
+    <h1>Accesorios y repuestos</h1>
+  </div>
+  <a class="btn btn-primary" href="{% url 'tienda:crear' %}">+ Nuevo producto</a>
+</header>
+
+<form class="tienda-search" method="get" action="{% url 'tienda:lista' %}">
+  <input type="search" name="q" value="{{ q }}" placeholder="Buscar por código, nombre o categoría…">
+  <button type="submit" class="btn">Buscar</button>
+  {% if q %}<a class="btn btn-ghost" href="{% url 'tienda:lista' %}">Limpiar</a>{% endif %}
+</form>
+
+{% if productos %}
+<div class="tienda-table-wrap">
+  <table class="tienda-table">
+    <thead>
+      <tr>
+        <th>Código</th>
+        <th>Nombre</th>
+        <th>Categoría</th>
+        <th>Precio</th>
+        <th>Cantidad</th>
+        <th>Estado</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in productos %}
+      <tr class="{% if p.stock_bajo %}stock-bajo{% endif %}">
+        <td><code>{{ p.codigo }}</code></td>
+        <td><a href="{% url 'tienda:detalle' p.pk %}">{{ p.nombre }}</a></td>
+        <td>{{ p.categoria }}</td>
+        <td>${{ p.precio }}</td>
+        <td>{{ p.cantidad }}{% if p.stock_bajo %} <span class="badge warn">bajo</span>{% endif %}</td>
+        <td><span class="badge estado-{{ p.estado }}">{{ p.get_estado_display }}</span></td>
+        <td class="acciones">
+          <a href="{% url 'tienda:editar' p.pk %}">Editar</a>
+          <a class="danger" href="{% url 'tienda:eliminar' p.pk %}">Eliminar</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if page_obj.has_other_pages %}
+<nav class="tienda-pager">
+  {% if page_obj.has_previous %}
+  <a href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}">← Anterior</a>
+  {% endif %}
+  <span>Pág. {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+  <a href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}">Siguiente →</a>
+  {% endif %}
+</nav>
+{% endif %}
+
+{% else %}
+<p class="tienda-empty">No hay productos{% if q %} para «{{ q }}»{% endif %}. <a href="{% url 'tienda:crear' %}">Crear el primero</a>.</p>
+{% endif %}
+{% endblock %}

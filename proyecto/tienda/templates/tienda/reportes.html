@@ -1,0 +1,28 @@
+{% extends "tienda/base_tienda.html" %}
+
+{% block title %}Reportes del inventario{% endblock %}
+
+{% block tienda_content %}
+<p class="tienda-back"><a href="{% url 'tienda:lista' %}">← Volver al inventario</a></p>
+
+<header class="tienda-head">
+  <div>
+    <p class="tienda-eyebrow">Reportes</p>
+    <h1>Resumen del inventario</h1>
+  </div>
+</header>
+
+<div class="reporte-grid">
+  {% for reporte in reportes %}
+  <article class="reporte-card">
+    <h2>{{ reporte.titulo }}</h2>
+    <p>{{ reporte.descripcion }}</p>
+    <ul>
+      {% for linea in reporte.lineas %}
+      <li>{{ linea }}</li>
+      {% endfor %}
+    </ul>
+  </article>
+  {% endfor %}
+</div>
+{% endblock %}

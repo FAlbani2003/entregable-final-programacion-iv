@@ -1,0 +1,32 @@
+{% extends "tienda/base_tienda.html" %}
+
+{% block tienda_content %}
+<p class="tienda-back"><a href="{% url 'tienda:catalogo' %}">← Volver al catálogo</a></p>
+
+<header class="tienda-head">
+  <div>
+    <p class="tienda-eyebrow">{{ producto.codigo }}</p>
+    <h1>{{ producto.nombre }}</h1>
+  </div>
+  <div class="tienda-actions">
+    <a class="btn" href="{% url 'tienda:editar' producto.pk %}">Editar</a>
+    <a class="btn btn-danger" href="{% url 'tienda:eliminar' producto.pk %}">Eliminar</a>
+  </div>
+</header>
+
+{% if producto.foto %}
+<img class="tienda-detail-img" src="{{ producto.foto }}" alt="{{ producto.nombre }}">
+{% endif %}
+
+<dl class="tienda-dl">
+  <div><dt>Código</dt><dd>{{ producto.codigo }}</dd></div>
+  <div><dt>Nombre</dt><dd>{{ producto.nombre }}</dd></div>
+  <div><dt>Descripción</dt><dd>{{ producto.descripcion|default:"—" }}</dd></div>
+  <div><dt>Categoría</dt><dd>{{ producto.categoria }}</dd></div>
+  <div><dt>Precio</dt><dd>${{ producto.precio }}</dd></div>
+  <div><dt>Cantidad existente</dt><dd>{{ producto.cantidad }}{% if producto.stock_bajo %} <span class="badge warn">stock bajo</span>{% endif %}</dd></div>
+  <div><dt>Stock mínimo</dt><dd>{{ producto.stock_minimo }}</dd></div>
+  <div><dt>Estado del producto</dt><dd><span class="badge estado-{{ producto.estado }}">{{ producto.get_estado_display }}</span></dd></div>
+  <div><dt>Fecha de registro</dt><dd>{{ producto.fecha_registro|date:"d/m/Y H:i" }}</dd></div>
+</dl>
+{% endblock %}

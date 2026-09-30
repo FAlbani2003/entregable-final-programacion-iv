@@ -1,0 +1,143 @@
+{% extends "tienda/base_tienda.html" %}
+
+{% block title %}Catálogo — AutoRepuestos{% endblock %}
+{% block body_class %}tienda-page catalogo-page{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Fichas de tienda: foto arriba, precio abajo. Ancho fijo para que no se estiren. */
+  body.catalogo-page { background: #ebebeb; }
+  body.catalogo-page .tienda-wrap { max-width: 1120px; padding-top: 1.1rem; }
+  body.catalogo-page .tienda-head { margin-bottom: 0.8rem; align-items: center; }
+  body.catalogo-page .tienda-head h1 { font-size: 1.45rem; color: #222; margin: 0; }
+  body.catalogo-page .tienda-search { margin-bottom: 0.9rem; }
+  body.catalogo-page .tienda-search input[type="search"] {
+    background: #fff; color: #222; border: 1px solid #ddd; border-radius: 8px; padding: 0.55rem 0.8rem;
+  }
+  body.catalogo-page .btn:not(.btn-primary) {
+    background: #fff; color: #222; border-color: #ddd;
+  }
+  .catalogo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 210px);
+    gap: 16px;
+    justify-content: start;
+  }
+  .catalogo-card {
+    display: flex;
+    flex-direction: column;
+    width: 210px;
+    background: #fff;
+    color: #333;
+    border: none;
+    border-radius: 8px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  }
+  .catalogo-card:hover { box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12); }
+  .catalogo-foto {
+    width: 100%;
+    height: 160px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border-bottom: 1px solid #f0f0f0;
+    border-radius: 0;
+  }
+  .catalogo-foto img {
+    width: 100%;
+    height: 160px;
+    object-fit: contain;
+    padding: 10px;
+  }
+  .catalogo-sin-foto { color: #999; font-size: 0.85rem; }
+  .catalogo-cuerpo { padding: 0.75rem 0.85rem 0.9rem; gap: 0.15rem; }
+  .catalogo-precio { margin: 0; font-size: 1.35rem; font-weight: 500; color: #333; }
+  .catalogo-cuerpo h2 {
+    margin: 0.15rem 0 0;
+    font-size: 0.92rem;
+    font-weight: 400;
+    line-height: 1.3;
+    color: #333;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.4em;
+  }
+  .catalogo-cuerpo h2 a { color: #333; text-decoration: none; }
+  .catalogo-cuerpo h2 a:hover { color: #3483fa; }
+  .catalogo-cat { margin: 0.2rem 0 0; font-size: 0.75rem; color: #888; letter-spacing: 0; text-transform: none; }
+  .catalogo-meta { margin: 0.35rem 0 0; display: flex; gap: 0.3rem; flex-wrap: wrap; }
+  .catalogo-acciones { margin: 0.45rem 0 0; display: flex; gap: 0.7rem; }
+  .catalogo-acciones a { color: #3483fa; font-size: 0.82rem; text-decoration: none; }
+  @media (max-width: 520px) {
+    .catalogo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .catalogo-card { width: auto; }
+    .catalogo-foto, .catalogo-foto img { height: 120px; }
+  }
+</style>
+{% endblock %}
+
+{% block tienda_content %}
+<header class="tienda-head">
+  <div>
+    <p class="tienda-eyebrow">Inicio</p>
+    <h1>Catálogo de repuestos</h1>
+  </div>
+  <a class="btn btn-primary" href="{% url 'tienda:crear' %}">+ Agregar producto</a>
+</header>
+
+<form class="tienda-search" method="get" action="{% url 'tienda:catalogo' %}">
+  <input type="search" name="q" value="{{ q }}" placeholder="Buscar en el catálogo…">
+  <button type="submit" class="btn">Buscar</button>
+  {% if q %}<a class="btn btn-ghost" href="{% url 'tienda:catalogo' %}">Limpiar</a>{% endif %}
+</form>
+
+{% if productos %}
+<div class="catalogo-grid">
+  {% for p in productos %}
+  <article class="catalogo-card">
+    <a class="catalogo-foto" href="{% url 'tienda:detalle' p.pk %}">
+      {% if p.foto %}
+      <img src="{{ p.foto }}" alt="{{ p.nombre }}">
+      {% else %}
+      <span class="catalogo-sin-foto">Sin imagen</span>
+      {% endif %}
+    </a>
+    <div class="catalogo-cuerpo">
+      <p class="catalogo-precio">${{ p.precio }}</p>
+      <h2><a href="{% url 'tienda:detalle' p.pk %}">{{ p.nombre }}</a></h2>
+      <p class="catalogo-cat">{{ p.categoria }}</p>
+      <p class="catalogo-meta">
+        <span class="badge estado-{{ p.estado }}">{{ p.get_estado_display }}</span>
+        {% if p.stock_bajo %}<span class="badge warn">stock bajo</span>{% endif %}
+      </p>
+      <p class="catalogo-acciones">
+        <a href="{% url 'tienda:detalle' p.pk %}">Ver</a>
+        <a href="{% url 'tienda:editar' p.pk %}">Agregar imagen</a>
+      </p>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+<nav class="tienda-pager">
+  {% if page_obj.has_previous %}
+  <a href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}">← Anterior</a>
+  {% endif %}
+  <span>Pág. {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+  <a href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}">Siguiente →</a>
+  {% endif %}
+</nav>
+{% endif %}
+
+{% else %}
+<p class="tienda-empty">No hay productos en el catálogo{% if q %} para «{{ q }}»{% endif %}. <a href="{% url 'tienda:crear' %}">Agregar el primero</a>.</p>
+{% endif %}
+{% endblock %}

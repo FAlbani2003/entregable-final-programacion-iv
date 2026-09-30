@@ -1,0 +1,20 @@
+{% extends "tienda/base_tienda.html" %}
+
+{% block tienda_content %}
+<p class="tienda-back"><a href="{% url 'tienda:lista' %}">← Volver al inventario</a></p>
+
+<header class="tienda-head">
+  <div>
+    <p class="tienda-eyebrow">Confirmar</p>
+    <h1>Eliminar producto</h1>
+  </div>
+</header>
+
+<p>¿Seguro que quieres eliminar <strong>{{ producto.codigo }} — {{ producto.nombre }}</strong>?</p>
+
+<form method="post" class="tienda-form-actions">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+  <a class="btn btn-ghost" href="{% url 'tienda:detalle' producto.pk %}">Cancelar</a>
+</form>
+{% endblock %}

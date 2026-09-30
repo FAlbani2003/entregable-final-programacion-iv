@@ -1,0 +1,201 @@
+{
+  "info": {
+    "id": "ses_f0fd3dedaffeEFGtb225gIkyR9",
+    "slug": "tidy-forest",
+    "projectID": "global",
+    "directory": "/home/felipe/Downloads/Gabriel_Felipe_Actividad5_ProgramacionIV/proyecto",
+    "path": "home/felipe/Downloads/Gabriel_Felipe_Actividad5_ProgramacionIV/proyecto",
+    "title": "Revision de patrones y restriccion",
+    "agent": "plan",
+    "model": {
+      "id": "qwen2.5:1.5b",
+      "providerID": "ollama",
+      "variant": "default"
+    },
+    "version": "1.18.33",
+    "summary": {
+      "additions": 0,
+      "deletions": 0,
+      "files": 0
+    },
+    "cost": 0,
+    "tokens": {
+      "input": 2050,
+      "output": 117,
+      "reasoning": 0,
+      "cache": {
+        "read": 0,
+        "write": 0
+      }
+    },
+    "permission": [
+      {
+        "permission": "question",
+        "pattern": "*",
+        "action": "deny"
+      },
+      {
+        "permission": "plan_enter",
+        "pattern": "*",
+        "action": "deny"
+      },
+      {
+        "permission": "plan_exit",
+        "pattern": "*",
+        "action": "deny"
+      }
+    ],
+    "time": {
+      "created": 1790735819045,
+      "updated": 1790735864293
+    }
+  },
+  "messages": [
+    {
+      "info": {
+        "role": "user",
+        "time": {
+          "created": 1790735819124
+        },
+        "agent": "plan",
+        "model": {
+          "providerID": "ollama",
+          "modelID": "qwen2.5:1.5b"
+        },
+        "summary": {
+          "diffs": []
+        },
+        "id": "msg_0f02c2174001tM40tqnrLrCqTW",
+        "sessionID": "ses_f0fd3dedaffeEFGtb225gIkyR9"
+      },
+      "parts": [
+        {
+          "type": "text",
+          "synthetic": true,
+          "text": "Called the Read tool with the following input: {\"filePath\":\"/home/felipe/Downloads/Gabriel_Felipe_Actividad5_ProgramacionIV/proyecto/tienda/reportes.py\"}",
+          "id": "prt_0f02c27ba0014okW5FDiXa1egT",
+          "sessionID": "ses_f0fd3dedaffeEFGtb225gIkyR9",
+          "messageID": "msg_0f02c2174001tM40tqnrLrCqTW"
+        },
+        {
+          "type": "text",
+          "synthetic": true,
+          "text": "<path>/home/felipe/Downloads/Gabriel_Felipe_Actividad5_ProgramacionIV/proyecto/tienda/reportes.py</path>\n<type>file</type>\n<content>\n1: \"\"\"Reportes del inventario.\n2: \n3: Cada reporte es una Strategy: misma interfaz, distinto cálculo.\n4: \"\"\"\n5: \n6: from abc import ABC, abstractmethod\n7: from decimal import Decimal\n8: \n9: from django.db.models import Count, Sum\n10: \n11: \n12: class Reporte(ABC):\n13:     titulo = \"\"\n14:     descripcion = \"\"\n15: \n16:     @abstractmethod\n17:     def calcular(self, queryset):\n18:         \"\"\"Devuelve una lista de líneas de texto con el resultado.\"\"\"\n19: \n20: \n21: class ReporteTotal(Reporte):\n22:     titulo = \"Total de registros\"\n23:     descripcion = \"Cuántos productos hay y cuál es el valor del inventario.\"\n24: \n25:     def calcular(self, queryset):\n26:         total = queryset.count()\n27:         if total == 0:\n28:             return [\"No hay productos registrados.\"]\n29:         valor = Decimal(\"0\")\n30:         for producto in queryset:\n31:             valor += producto.precio * producto.cantidad\n32:         return [\n33:             f\"Productos registrados: {total}\",\n34:             f\"Valor del inventario (precio × cantidad): ${valor:.2f}\",\n35:         ]\n36: \n37: \n38: class ReporteMasCaro(Reporte):\n39:     titulo = \"Producto más caro\"\n40:     descripcion = \"El registro con el mayor precio.\"\n41: \n42:     def calcular(self, queryset):\n43:         producto = queryset.order_by(\"-precio\", \"nombre\").first()\n44:         if producto is None:\n45:             return [\"No hay productos registrados.\"]\n46:         return [f\"{producto.codigo} — {producto.nombre}: ${producto.precio}\"]\n47: \n48: \n49: class ReporteMasBarato(Reporte):\n50:     titulo = \"Producto más barato\"\n51:     descripcion = \"El registro con el menor precio.\"\n52: \n53:     def calcular(self, queryset):\n54:         producto = queryset.order_by(\"precio\", \"nombre\").first()\n55:         if producto is None:\n56:             return [\"No hay productos registrados.\"]\n57:         return [f\"{producto.codigo} — {producto.nombre}: ${producto.precio}\"]\n58: \n59: \n60: class ReporteStockBajo(Reporte):\n61:     titulo = \"Stock bajo o agotado\"\n62:     descripcion = \"Productos cuya cantidad es menor o igual al stock mínimo.\"\n63: \n64:     def calcular(self, queryset):\n65:         bajos = [\n66:             producto\n67:             for producto in queryset.order_by(\"cantidad\", \"nombre\")\n68:             if producto.cantidad <= producto.stock_minimo\n69:         ]\n70:         if not bajos:\n71:             return [\"Ningún producto está en stock bajo.\"]\n72:         return [\n73:             f\"{p.codigo} — {p.nombre}: {p.cantidad} (mínimo {p.stock_minimo})\"\n74:             for p in bajos\n75:         ]\n76: \n77: \n78: class ReportePorCategoria(Reporte):\n79:     titulo = \"Resumen por categoría\"\n80:     descripcion = \"Cantidad de productos y unidades en cada categoría.\"\n81: \n82:     def calcular(self, queryset):\n83:         filas = (\n84:             queryset.values(\"categoria\")\n85:             .annotate(productos=Count(\"id\"), unidades=Sum(\"cantidad\"))\n86:             .order_by(\"categoria\")\n87:         )\n88:         if not filas:\n89:             return [\"No hay productos registrados.\"]\n90:         return [\n91:             f\"{fila['categoria']}: {fila['productos']} productos, {fila['unidades']} unidades\"\n92:             for fila in filas\n93:         ]\n94: \n95: \n96: def reportes_disponibles():\n97:     \"\"\"Devuelve las estrategias de reporte en el orden de la vista.\"\"\"\n98:     return [\n99:         ReporteTotal(),\n100:         ReporteMasCaro(),\n101:         ReporteMasBarato(),\n102:         ReporteStockBajo(),\n103:         ReportePorCategoria(),\n104:     ]\n105: \n106: \n107: def ejecutar_reportes(queryset):\n108:     return [\n109:         {\n110:             \"titulo\": reporte.titulo,\n111:             \"descripcion\": reporte.descripcion,\n112:             \"lineas\": reporte.calcular(queryset),\n113:         }\n114:         for reporte in reportes_disponibles()\n115:     ]\n\n(End of file - total 115 lines)\n</content>",
+          "id": "prt_0f02c27ba002iz7oI6T6voKWPn",
+          "sessionID": "ses_f0fd3dedaffeEFGtb225gIkyR9",
+          "messageID": "msg_0f02c2174001tM40tqnrLrCqTW"
+        },
+        {
+          "type": "file",
+          "mime": "text/plain",
+          "filename": "reportes.py",
+          "url": "file:///home/felipe/Downloads/Gabriel_Felipe_Actividad5_ProgramacionIV/proyecto/tienda/reportes.py",
+          "id": "prt_0f02c27ba0037EKunDoxI9ihbZ",
+          "sessionID": "ses_f0fd3dedaffeEFGtb225gIkyR9",
+          "messageID": "msg_0f02c2174001tM40tqnrLrCqTW"
+        },
+        {
+          "type": "text",
+          "synthetic": true,
+          "text": "Called the Read tool with the following input: {\"filePath\":\"/home/felipe/Downloads/Gabriel_Felipe_Actividad5_ProgramacionIV/proyecto/tienda/services/ollama_service.py\"}",
+          "id": "prt_0f02c27ba004mDcHC0KKjJSD6m",
+          "sessionID": "ses_f0fd3dedaffeEFGtb225gIkyR9",
+          "messageID": "msg_0f02c2174001tM40tqnrLrCqTW"
+        },
+        {
+          "type": "text",
+          "synthetic": true,
+          "text": "<path>/home/felipe/Downloads/Gabriel_Felipe_Actividad5_ProgramacionIV/proyecto/tienda/services/ollama_service.py</path>\n<type>file</type>\n<content>\n1: \"\"\"Integración con Ollama.\n2: \n3: Factory crea el servicio a partir de la configuración.\n4: El servicio arma un contexto solo con filas reales de Producto, pide\n5: al modelo que no invente datos y descarta respuestas que citan un código\n6: que no está en el catálogo.\n7: \"\"\"\n8: \n9: import re\n10: \n11: import requests\n12: from django.conf import settings\n13: \n14: # Códigos del inventario: prefijo en letras y al menos un tramo con guion.\n15: _CODIGO_EN_TEXTO = re.compile(r\"\\b[A-Z]{2,}(?:-[A-Z0-9]+)+\\b\")\n16: \n17: MENSAJE_SIN_DATOS = \"No tengo ese dato disponible.\"\n18: MENSAJE_FUERA_DE_TEMA = (\n19:     \"Solo puedo responder consultas sobre repuestos y accesorios \"\n20:     \"de la tienda AutoRepuestos.\"\n21: )\n22: MENSAJE_OLLAMA_CAIDO = (\n23:     \"Ollama no está disponible. Comprueba que el servicio esté en \"\n24:     \"ejecución (ollama serve) e inténtalo de nuevo.\"\n25: )\n26: \n27: _TEMAS_TIENDA = (\n28:     \"producto\",\n29:     \"productos\",\n30:     \"repuesto\",\n31:     \"repuestos\",\n32:     \"accesorio\",\n33:     \"accesorios\",\n34:     \"inventario\",\n35:     \"precio\",\n36:     \"precios\",\n37:     \"stock\",\n38:     \"cantidad\",\n39:     \"codigo\",\n40:     \"código\",\n41:     \"categoria\",\n42:     \"categoría\",\n43:     \"caro\",\n44:     \"barato\",\n45:     \"filtro\",\n46:     \"freno\",\n47:     \"aceite\",\n48:     \"bateria\",\n49:     \"batería\",\n50:     \"luz\",\n51:     \"luces\",\n52:     \"agotado\",\n53:     \"activo\",\n54:     \"catalogo\",\n55:     \"catálogo\",\n56: )\n57: \n58: \n59: class OllamaNoDisponible(Exception):\n60:     \"\"\"Ollama no respondió o no está en ejecución.\"\"\"\n61: \n62: \n63: class OllamaService:\n64:     def __init__(self, base_url, model, timeout=90):\n65:         self.base_url = base_url.rstrip(\"/\")\n66:         self.model = model\n67:         self.timeout = timeout\n68: \n69:     def responder(self, pregunta, productos):\n70:         filas = list(productos)\n71:         if not filas:\n72:             return MENSAJE_SIN_DATOS\n73:         if not self._es_consulta_de_tienda(pregunta):\n74:             return MENSAJE_FUERA_DE_TEMA\n75: \n76:         prompt = self._prompt(pregunta, filas)\n77:         try:\n78:             respuesta = requests.post(\n79:                 f\"{self.base_url}/api/generate\",\n80:                 json={\n81:                     \"model\": self.model,\n82:                     \"prompt\": prompt,\n83:                     \"stream\": False,\n84:                     \"options\": {\"temperature\": 0.1, \"num_predict\": 300},\n85:                 },\n86:                 timeout=self.timeout,\n87:             )\n88:             respuesta.raise_for_status()\n89:         except requests.RequestException as exc:\n90:             raise OllamaNoDisponible(MENSAJE_OLLAMA_CAIDO) from exc\n91: \n92:         texto = (respuesta.json().get(\"response\") or \"\").strip()\n93:         if not texto or not self._respeta_catalogo(texto, filas):\n94:             return MENSAJE_SIN_DATOS\n95:         return texto\n96: \n97:     def _respeta_catalogo(self, texto, filas):\n98:         \"\"\"True si cada código citado en la respuesta existe en las filas.\"\"\"\n99:         permitidos = {p.codigo.upper() for p in filas}\n100:         citados = _CODIGO_EN_TEXTO.findall(texto.upper())\n101:         return all(codigo in permitidos for codigo in citados)\n102: \n103:     def _es_consulta_de_tienda(self, pregunta):\n104:         texto = pregunta.casefold()\n105:         return any(tema in texto for tema in _TEMAS_TIENDA)\n106: \n107:     def _prompt(self, pregunta, filas):\n108:         lineas = []\n109:         for p in filas:\n110:             lineas.append(\n111:                 \" | \".join(\n112:                     [\n113:                         f\"Código: {p.codigo}\",\n114:                         f\"Nombre: {p.nombre}\",\n115:                         f\"Descripción: {p.descripcion or '—'}\",\n116:                         f\"Categoría: {p.categoria}\",\n117:                         f\"Precio: {p.precio}\",\n118:                         f\"Cantidad: {p.cantidad}\",\n119:                         f\"Stock mínimo: {p.stock_minimo}\",\n120:                         f\"Estado: {p.get_estado_display()}\",\n121:                         f\"Fecha: {p.fecha_registro:%d/%m/%Y}\",\n122:                     ]\n123:                 )\n124:             )\n125:         catalogo = \"\\n\".join(lineas)\n126:         return (\n127:             \"Eres el asistente de AutoRepuestos. Responde siempre en español.\\n\"\n128:             \"Usa únicamente el catálogo que aparece debajo. No inventes códigos, \"\n129:             \"precios ni cantidades.\\n\"\n130:             f'Si el dato no está en el catálogo, responde exactamente: \"{MENSAJE_SIN_DATOS}\"\\n'\n131:             f'Si la pregunta no es del inventario, responde exactamente: \"{MENSAJE_FUERA_DE_TEMA}\"\\n\\n'\n132:             f\"CATÁLOGO:\\n{catalogo}\\n\\n\"\n133:             f\"PREGUNTA: {pregunta}\\n\"\n134:             \"RESPUESTA:\"\n135:         )\n136: \n137: \n138: class OllamaServiceFactory:\n139:     \"\"\"Factory: construye el servicio con la URL y el modelo configurados.\"\"\"\n140: \n141:     @staticmethod\n142:     def crear():\n143:         return OllamaService(\n144:             base_url=settings.OLLAMA_URL,\n145:             model=settings.OLLAMA_MODEL,\n146:         )\n\n(End of file - total 146 lines)\n</content>",
+          "id": "prt_0f02c27ba005WOD2VPT2c726NR",
+          "sessionID": "ses_f0fd3dedaffeEFGtb225gIkyR9",
+          "messageID": "msg_0f02c2174001tM40tqnrLrCqTW"
+        },
+        {
+          "type": "file",
+          "mime": "text/plain",
+          "filename": "ollama_service.py",
+          "url": "file:///home/felipe/Downloads/Gabriel_Felipe_Actividad5_ProgramacionIV/proyecto/tienda/services/ollama_service.py",
+          "id": "prt_0f02c27ba006raBBFkkFfLP9ci",
+          "sessionID": "ses_f0fd3dedaffeEFGtb225gIkyR9",
+          "messageID": "msg_0f02c2174001tM40tqnrLrCqTW"
+        },
+        {
+          "type": "text",
+          "text": "\"Revisa tienda/reportes.py y tienda/services/ollama_service.py. No modifiques ningún archivo. Responde en español y en texto plano. 1) ¿Qué patrón de diseño implementa reportes.py? 2) ¿Qué patrón implementa OllamaServiceFactory? 3) Si la respuesta del modelo cita un código que no está en el catálogo, ¿qué mensaje devuelve el servicio? Sé breve.\"",
+          "id": "prt_0f02c27ba007Opmu5To1G3KGFX",
+          "sessionID": "ses_f0fd3dedaffeEFGtb225gIkyR9",
+          "messageID": "msg_0f02c2174001tM40tqnrLrCqTW"
+        }
+      ]
+    },
+    {
+      "info": {
+        "parentID": "msg_0f02c2174001tM40tqnrLrCqTW",
+        "role": "assistant",
+        "mode": "plan",
+        "agent": "plan",
+        "path": {
+          "cwd": "/home/felipe/Downloads/Gabriel_Felipe_Actividad5_ProgramacionIV/proyecto",
+          "root": "/"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 2167,
+          "input": 2050,
+          "output": 117,
+          "reasoning": 0,
+          "cache": {
+            "write": 0,
+            "read": 0
+          }
+        },
+        "modelID": "qwen2.5:1.5b",
+        "providerID": "ollama",
+        "time": {
+          "created": 1790735820787,
+          "completed": 1790735864237
+        },
+        "finish": "stop",
+        "id": "msg_0f02c27f3002yqCvP77zKYDBBz",
+        "sessionID": "ses_f0fd3dedaffeEFGtb225gIkyR9"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "id": "prt_0f02ca9a600133rV143ecqhosm",
+          "sessionID": "ses_f0fd3dedaffeEFGtb225gIkyR9",
+          "messageID": "msg_0f02c27f3002yqCvP77zKYDBBz"
+        },
+        {
+          "type": "text",
+          "text": "Welcome to the Task Delegation Mode! Your primary responsibility is to plan and orchestrate the exploration and analysis necessary to complete the user's task. Keep in mind, while we're in READ-ONLY mode, your actions will not be restricted but your inputs will not be shared or acted upon by anyone but the system itself. \n\nReady to help! Please proceed with providing the details of the task or describe what needs to be done. Once you're ready, simply let this chat session know, and I'll help you organize the appropriate agents and tools to address the task efficiently.",
+          "time": {
+            "start": 1790735853998,
+            "end": 1790735864206
+          },
+          "id": "prt_0f02ca9ad0016WDiRDYxechAny",
+          "sessionID": "ses_f0fd3dedaffeEFGtb225gIkyR9",
+          "messageID": "msg_0f02c27f3002yqCvP77zKYDBBz"
+        },
+        {
+          "reason": "stop",
+          "type": "step-finish",
+          "tokens": {
+            "total": 2167,
+            "input": 2050,
+            "output": 117,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 0
+            }
+          },
+          "cost": 0,
+          "id": "prt_0f02cd1a00012NMt18sEK1nUu4",
+          "sessionID": "ses_f0fd3dedaffeEFGtb225gIkyR9",
+          "messageID": "msg_0f02c27f3002yqCvP77zKYDBBz"
+        }
+      ]
+    }
+  ]
+}

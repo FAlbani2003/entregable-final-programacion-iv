@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Inventario — Accesorios y repuestos{% endblock %}
+
+{% block extra_css %}{% endblock %}
+
+{% block body_class %}tienda-page{% endblock %}
+
+{% block content %}
+<div class="tienda-wrap">
+  {% if messages %}
+  <ul class="tienda-msgs">
+    {% for message in messages %}
+    <li class="tienda-msg{% if 'error' in message.tags %} tienda-msg-error{% endif %}">{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% block tienda_content %}{% endblock %}
+</div>
+{% endblock %}

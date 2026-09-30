@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block body_class %}template-homepage ml-home{% endblock %}
+
+{% block content %}
+<section class="ml-hero">
+  <div class="ml-hero-inner">
+    <p class="ml-hero-brand">AutoRepuestos</p>
+    <h1>Accesorios y repuestos para tu vehículo</h1>
+    <p class="ml-hero-sub">Encuentra filtros, frenos, aceites, luces y más — envío rápido y stock real.</p>
+    <a class="ml-cta" href="{% url 'tienda:lista' %}">Ver inventario completo</a>
+  </div>
+</section>
+
+<section class="ml-catalog">
+  <div class="ml-catalog-head">
+    <h2>Productos destacados</h2>
+    <a href="{% url 'tienda:lista' %}">Ir al inventario →</a>
+  </div>
+
+  {% if productos %}
+  <div class="ml-grid">
+    {% for p in productos %}
+    <a class="ml-card" href="{% url 'tienda:detalle' p.pk %}">
+      <div class="ml-card-img">
+        {% if p.imagen_url %}
+        <img src="{{ p.imagen_url }}" alt="{{ p.nombre }}" loading="lazy" width="500" height="500">
+        {% else %}
+        <div class="ml-card-placeholder">Sin imagen</div>
+        {% endif %}
+        {% if p.estado == "agotado" %}<span class="ml-tag soldout">Agotado</span>{% endif %}
+        {% if p.stock_bajo and p.estado != "agotado" %}<span class="ml-tag low">Últimas unidades</span>{% endif %}
+      </div>
+      <div class="ml-card-body">
+        <p class="ml-price">${{ p.precio }}</p>
+        <h3 class="ml-title">{{ p.nombre }}</h3>
+        <p class="ml-meta">{{ p.categoria }} · {{ p.codigo }}</p>
+        {% if p.cantidad > 0 %}
+        <p class="ml-ship">Stock: {{ p.cantidad }} unidades</p>
+        {% else %}
+        <p class="ml-ship muted">Sin stock</p>
+        {% endif %}
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="ml-empty">Aún no hay productos. <a href="{% url 'tienda:crear' %}">Crear el primero</a>.</p>
+  {% endif %}
+</section>
+
+{% if page.body %}
+<section class="ml-about">
+  <div class="ml-about-inner">{{ page.body|safe }}</div>
+</section>
+{% endif %}
+{% endblock content %}

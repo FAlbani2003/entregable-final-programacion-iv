@@ -1,0 +1,38 @@
+{% extends "tienda/base_tienda.html" %}
+
+{% block title %}Consulta al inventario{% endblock %}
+
+{% block tienda_content %}
+<p class="tienda-back"><a href="{% url 'tienda:lista' %}">← Volver al inventario</a></p>
+
+<header class="tienda-head">
+  <div>
+    <p class="tienda-eyebrow">IA local</p>
+    <h1>Consulta el inventario</h1>
+  </div>
+</header>
+
+<p>La respuesta usa solo los productos guardados en la base de datos, a través de Ollama en esta máquina.</p>
+
+<form method="post" class="tienda-form consulta-box" novalidate>
+  {% csrf_token %}
+  {% for field in form %}
+  <div class="field {% if field.errors %}has-error{% endif %}">
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% if field.errors %}<p class="field-error">{{ field.errors|striptags }}</p>{% endif %}
+  </div>
+  {% endfor %}
+  <div class="tienda-form-actions">
+    <button type="submit" class="btn btn-primary">Preguntar</button>
+  </div>
+</form>
+
+{% if respuesta %}
+<article class="consulta-respuesta">
+  <p class="consulta-pregunta">Pregunta: {{ pregunta }}</p>
+  <h2>Respuesta</h2>
+  <p>{{ respuesta }}</p>
+</article>
+{% endif %}
+{% endblock %}
